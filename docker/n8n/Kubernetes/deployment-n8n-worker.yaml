@@ -1,0 +1,51 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: n8n-worker
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: n8n-worker
+  template:
+    metadata:
+      labels:
+        app: n8n-worker
+    spec:
+      containers:
+        - name: n8n-worker
+          image: n8nio/n8n:latest
+          args: ["worker", "--concurrency=1"]
+          envFrom:
+            - configMapRef:
+                name: n8n-config
+          resources:
+            limits:
+              memory: "1Gi"
+              cpu: "500m"
+            requests:
+              memory: "512Mi"
+              cpu: "250m"
+          livenessProbe:
+            exec:
+              command:
+                - /bin/sh
+                - -c
+                - "ps aux | grep [n]8n worker || exit 1"
+            initialDelaySeconds: 30
+            periodSeconds: 30
+          readinessProbe:
+            exec:
+              command:
+                - /bin/sh
+                - -c
+                - "ps aux | grep [n]8n worker || exit 1"
+            initialDelaySeconds: 10
+            periodSeconds: 10
+          volumeMounts:
+            - name: n8n-data
+              mountPath: /home/node/.n8n
+      volumes:
+        - name: n8n-data
+          persistentVolumeClaim:
+            claimName: n8n-data

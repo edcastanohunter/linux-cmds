@@ -1,0 +1,21 @@
+#!/bin/bash
+
+echo "Installing Fail2Ban and system scanners..."
+# Fail2Ban: Automatically bans IPs with too many failed login attempts.
+# Rootkit Hunter (rkhunter) & Lynis: Scanning tools for finding common exploits or misconfigurations.
+sudo apt install fail2ban rkhunter lynis -y
+sudo systemctl enable fail2ban
+
+
+echo "Fail2Ban installed and running."
+
+# Configure Fail2Ban
+sudo cp /etc/fail2ban/jail.conf /etc/fail2ban/jail.local
+sudo sed -i 's/^#bantime = 600/bantime = 600/' /etc/fail2ban/jail.local
+sudo sed -i 's/^#findtime = 600/findtime = 600/' /etc/fail2ban/jail.local
+sudo sed -i 's/^#maxretry = 3/maxretry = 3/' /etc/fail2ban/jail.local
+
+
+sudo systemctl start fail2ban
+
+echo "Fail2Ban installed and running."

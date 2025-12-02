@@ -1,0 +1,39 @@
+# apiVersion: networking.k8s.io/v1
+# kind: Ingress
+# metadata:
+#   name: n8n-ingress
+#   namespace: default
+#   annotations:
+#     nginx.ingress.kubernetes.io/rewrite-target: /
+# spec:
+#   rules:
+#     - host: n8n.localhost
+#       http:
+#         paths:
+#           - path: /
+#             pathType: Prefix
+#             backend:
+#               service:
+#                 name: n8n-main
+#                 port:
+#                   number: 5678 
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: n8n-ingress
+  namespace: default
+  #annotations:
+  #  kubernetes.io/ingress.class: "traefik"
+spec:
+  ingressClassName: traefik
+  rules:
+    - host: n8n.localhost
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: n8n-main
+                port:
+                  number: 5678  

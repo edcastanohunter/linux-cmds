@@ -1,0 +1,17 @@
+Host edcastdev.com
+  HostName edcastdev.com
+  User edhunter
+  IdentityFile "~/.ssh/ed_go_key"
+
+Host edserver3
+  HostName 157.137.233.48
+  User edhunter
+  IdentityFile "~/.ssh/edserverT03"
+  AddressFamily inet
+
+Host edserver2
+  HostName 217.216.50.122
+  IdentityFile "~/.ssh/edserver02"
+  User edhunter
+  # Port 4424
+  
