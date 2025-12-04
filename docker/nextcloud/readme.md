@@ -1,0 +1,1 @@
+https://thomaswildetech.com/blog/2025/05/01/setting-up-nextcloud-with-docker-compose/#docker-compose

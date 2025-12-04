@@ -1,5 +1,8 @@
 ## INXI
 
+```bash
+sudo apt install inxi
+```
 
 # Most useful inxi commands for Linux
 

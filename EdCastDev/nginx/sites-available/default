@@ -1,0 +1,44 @@
+server {
+    if ($host = www.edcastdev.com) {
+        return 301 https://$host$request_uri;
+    } # managed by Certbot
+
+
+    if ($host = edcastdev.com) {
+        return 301 https://$host$request_uri;
+    } # managed by Certbot
+
+
+    listen 80 default_server;
+    listen [::]:80 default_server;
+    server_name edcastdev.com www.edcastdev.com;
+    return 301 https://$host$request_uri;
+
+}
+
+server {
+    listen 443 ssl http2 default_server;
+    listen [::]:443 ssl http2 default_server;
+    server_name edcastdev.com www.edcastdev.com;
+
+    root /var/www/edcastdev;
+    index index.html;
+    ssl_certificate /etc/letsencrypt/live/edcastdev.com-0001/fullchain.pem; # managed by Certbot
+    ssl_certificate_key /etc/letsencrypt/live/edcastdev.com-0001/privkey.pem; # managed by Certbot
+    ssl_protocols TLSv1.2 TLSv1.3;
+    ssl_ciphers HIGH:!aNULL:!MD5;
+
+    location / {
+        try_files $uri $uri/ =404;
+    }
+
+    # Uncomment and configure PHP if needed
+    #location ~ \.php$ {
+    #    include snippets/fastcgi-php.conf;
+    #    fastcgi_pass unix:/run/php/php7.4-fpm.sock;
+    #}
+
+
+
+
+}

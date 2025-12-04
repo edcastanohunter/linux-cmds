@@ -1,0 +1,1 @@
+https://thomaswildetech.com/blog/2025/07/30/setting-up-the-best-nginx-container-swag/

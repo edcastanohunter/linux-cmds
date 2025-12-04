@@ -1,0 +1,20 @@
+services:
+  tududi:
+    image: chrisvel/tududi:latest
+    container_name: tududi
+    environment:
+      - TUDUDI_USER_EMAIL=dameliatus@hotmail.com
+      - TUDUDI_USER_PASSWORD=Alvilove271@123
+      - TUDUDI_SESSION_SECRET=4940b0cfae08c130c398e054ec4eee9173a7f1ca2da2ac386e68bbf1b39bcc544750786fe682727d4dcb3bd23cc6f7e7f2eaa2fffabae942fe199a6406283cb6
+      - TUDUDI_ALLOWED_ORIGINS=http://localhost:3002,http://http://217.216.50.122:3002
+      - TUDUDI_UPLOAD_PATH=/app/backend/uploads
+      # Runtime UID/GID configuration - set these to match your host user/group
+      # https://github.com/chrisvel/tududi
+      - PUID=1001
+      - PGID=1001
+    volumes:
+      - ./tududi_db:/app/backend/db
+      - ./uploads:/app/backend/uploads
+    ports:
+      - "3002:3002"
+    restart: unless-stopped

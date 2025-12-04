@@ -156,7 +156,24 @@ services:
           memory: 2G
         reservations:
           memory: 1G
+volumes:
+  n8n_postgres_data:
+    external: true
+  n8n_redis_data:
+    external: true
+  n8n_data:
+    external: true
+  n8n_custom_nodes:
+    external: true
+  n8n_workflows:
+    external: true
 
+networks:
+  n8n_network:
+  global_db_management_network:
+    external: true
+
+    
   # postgres-vector:
   #   image: pgvector/pgvector:pg16
   #   container_name: n8n_postgres_vector
@@ -214,19 +231,4 @@ services:
   #   networks:
   #     - appnet
   #   restart: unless-stopped
-volumes:
-  n8n_postgres_data:
-    external: true
-  n8n_redis_data:
-    external: true
-  n8n_data:
-    external: true
-  n8n_custom_nodes:
-    external: true
-  n8n_workflows:
-    external: true
 
-networks:
-  n8n_network:
-  global_db_management_network:
-    external: true

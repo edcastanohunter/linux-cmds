@@ -1,0 +1,86 @@
+# HTTP -> HTTPS redirect
+server {
+    listen 80;
+    listen [::]:80;
+    server_name kibana.edcastdev.com www.kibana.edcastdev.com;
+
+    # Redirect all HTTP traffic to HTTPS
+    return 301 https://$host$request_uri;
+}
+
+# Main HTTPS server
+server {
+    listen 443 ssl http2;
+    listen [::]:443 ssl http2;
+    server_name kibana.edcastdev.com www.kibana.edcastdev.com;
+
+    # SSL configuration
+    ssl_certificate /etc/letsencrypt/live/edcastdev.com-0001/fullchain.pem; # managed by Certbot
+    ssl_certificate_key /etc/letsencrypt/live/edcastdev.com-0001/privkey.pem; # managed by Certbot
+
+    # Security headers
+    add_header Strict-Transport-Security "max-age=31536000; includeSubDomains" always;
+    add_header X-Content-Type-Options "nosniff" always;
+    add_header X-Frame-Options "SAMEORIGIN" always;
+    add_header X-XSS-Protection "1; mode=block" always;
+    add_header Referrer-Policy "strict-origin-when-cross-origin" always;
+
+    # SSL configuration
+    ssl_protocols TLSv1.2 TLSv1.3;
+    ssl_prefer_server_ciphers on;
+    ssl_ciphers ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-GCM-SHA384:ECDHE-ECDSA-CHACHA20-POLY1305:ECDHE-RSA-CHACHA20-POLY1305;
+    ssl_session_timeout 1d;
+    ssl_session_cache shared:SSL:50m;
+    ssl_session_tickets off;
+
+    # OCSP Stapling
+    # ssl_stapling on;
+    # ssl_stapling_verify on;
+    # resolver 8.8.8.8 8.8.4.4 valid=300s;
+    # resolver_timeout 5s;
+
+    # kibana reverse proxy
+    location / {
+        proxy_buffer_size 512k;
+        proxy_buffering on;
+        proxy_buffers 8 512k;
+        proxy_busy_buffers_size 512k;
+        proxy_http_version 1.1;
+        proxy_pass http://127.0.0.1:5601;
+        proxy_read_timeout 1800s;
+        client_max_body_size 50M;
+
+        # HTTP/2 and WebSocket support
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection "upgrade";
+
+        # Important headers for proper proxying
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_set_header X-Forwarded-Host $host;
+        proxy_set_header X-Forwarded-Port $server_port;
+
+        # Additional HTTP/2 settings
+        proxy_connect_timeout 60s;
+        proxy_send_timeout 60s;
+        proxy_next_upstream error timeout http_502 http_503 http_504;
+
+        # WebSocket support
+        proxy_cache_bypass $http_upgrade;
+    }
+
+    # Custom error pages (optional)
+    error_page 502 503 504 /50x.html;
+    location = /50x.html {
+        root /usr/share/nginx/html;
+    }
+
+    # Deny access to . files
+    location ~ /\. {
+        deny all;
+        access_log off;
+        log_not_found off;
+    }
+}
