@@ -20,3 +20,8 @@
 
 wget https://raw.githubusercontent.com/AppFlowy-IO/appflowy/main/frontend/scripts/docker-buildfiles/Dockerfile
 wget https://raw.githubusercontent.com/AppFlowy-IO/appflowy/main/frontend/scripts/docker-buildfiles/docker-compose.yml
+
+
+## Dockerfile
+- Good samples for alpine versions: https://github.com/yobasystems
+    - Not sure why they created their own alpíne version
