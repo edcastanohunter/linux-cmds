@@ -1,0 +1,7 @@
+# Ignore data directories containing runtime artifacts and databases
+#Servers/EdServer3/nginx/data/
+#Servers/EdServer3/data/
+
+# Ignore Certbot artifacts specifically if they appear elsewhere
+#**/certbot/conf/live/
+#**/certbot/conf/archive/
