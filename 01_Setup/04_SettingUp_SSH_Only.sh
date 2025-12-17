@@ -25,6 +25,13 @@ sudo sed -i 's/^PasswordAuthentication.*/PasswordAuthentication no/' $SSH_CONFIG
 #     sudo ufw allow $NEW_SSH_PORT/tcp
 # fi
 
+# PermitRootLogin no
+# AddressFamily inet
+# PasswordAuthentication no 
+# kbdinteractiveauthentication no
+# x11forwarding yes
+# PrintMotd no
+S
 
 # # Apply changes
 # echo "Restarting SSH service..."

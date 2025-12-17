@@ -1,0 +1,26 @@
+version: "3.3"
+services:
+  bytebase:
+    image: elestio/bytebase:${SOFTWARE_VERSION_TAG}
+    init: true
+    container_name: bytebase
+    restart: always
+    ports:
+      - "127.0.0.1:8458:5678"
+    volumes:
+      - ~/.bytebase/data:/var/opt/bytebase
+    command:
+      [
+        "--data",
+        "/var/opt/bytebase",
+        "--external-url",
+        "https://${DOMAIN}",
+        "--port",
+        "5678",
+      ]
+    networks:
+      - global_db_management_network
+
+networks:
+  global_db_management_network:
+    external: true

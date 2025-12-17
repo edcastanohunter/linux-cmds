@@ -30,4 +30,16 @@ docker network create global_db_management_network
 # to inspect the container
 docker inspect n8n_postgres --format "{{range .NetworkSettings.Networks}}{{.NetworkID}} {{.IPAddress}} {{end}}"
 
+
+docker cp -r n8n:/home/node/backups ./
+
+
+sudo apt install bat
+mkdir -p ~/.local/bin
+ln -s /usr/bin/batcat ~/.local/bin/bat
+
+an example alias for batcat as bat:
+
+alias bat="batcat"
+
 ```

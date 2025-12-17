@@ -1,0 +1,234 @@
+name: n8n-stack
+services:
+  postgres:
+    image: postgres:18-alpine
+    container_name: n8n_postgres
+    restart: always
+    ports:
+      - "127.0.0.1:5432:5432"
+    volumes:
+      - n8n_postgres_data:/var/lib/postgresql/data
+    env_file: .env
+    environment:
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_DB=${POSTGRES_DB}
+      - TZ=${TZ}
+    networks:
+      - n8n_network
+      - global_db_management_network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:8.4-alpine
+    container_name: n8n_redis
+    restart: always
+    ports:
+      - "127.0.0.1:6379:6379"
+      - "127.0.0.1:15011:8001"
+    volumes:
+      - n8n_redis_data:/data
+    environment:
+      TZ: ${TZ}
+    networks:
+      - n8n_network
+    healthcheck:
+      # https://redis.io/docs/latest/commands/ping/
+      test: ["CMD-SHELL", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 2s
+      retries: 5
+
+  n8n-main:
+    image: n8nio/n8n:1.122.3
+    container_name: n8n_main
+    restart: always
+    ports:
+      - "127.0.0.1:5678:5678"
+    env_file: .env
+    environment:
+      - DB_TYPE=postgresdb
+      - DB_POSTGRESDB_HOST=n8n_postgres
+      - DB_POSTGRESDB_PORT=5432
+      - DB_POSTGRESDB_DATABASE=${POSTGRES_DB}
+      - DB_POSTGRESDB_USER=${POSTGRES_USER}
+      - DB_POSTGRESDB_PASSWORD=${POSTGRES_PASSWORD}
+      - DB_POSTGRESDB_SCHEMA=public
+      - N8N_EDITOR_BASE_URL=https://${SUBDOMAIN}.${DOMAIN_NAME}/
+      - N8N_HOST=${SUBDOMAIN}.${DOMAIN_NAME}
+      # Trust proxy ranges (Express syntax: comma-separated, supports CIDR and keywords)
+      - N8N_EXPRESS_TRUST_PROXY=loopback,uniquelocal,172.17.0.0/16
+      - N8N_PORT=5678
+      - N8N_PROTOCOL=https
+      - N8N_SECURE_COOKIE=true
+      - N8N_ENCRYPTION_KEY=${N8N_ENCRYPTION_KEY}
+      - N8N_LOG_LEVEL=info
+      # Genera las maquinas o pods para correr los workflows
+      - N8N_RUNNERS_ENABLED=true
+      # Cada vez que se ejecute de manera manual un workflow se delegara al worker
+      - OFFLOAD_MANUAL_EXECUTIONS_TO_WORKERS=true
+      - NODE_ENV=production
+      - WEBHOOK_URL=https://${SUBDOMAIN}.${DOMAIN_NAME}/
+      - GENERIC_TIMEZONE=${TZ}
+      - TZ=${TZ}
+      - EXECUTIONS_MODE=queue
+      - QUEUE_BULL_REDIS_HOST=n8n_redis
+      - QUEUE_BULL_REDIS_PORT=6379
+      # N8N_BASIC_AUTH_ACTIVE: true
+      # N8N_BASIC_AUTH_USER: ${N8N_BASIC_AUTH_USER}
+      # N8N_BASIC_AUTH_PASSWORD: ${N8N_BASIC_AUTH_PASSWORD}
+    volumes:
+      - n8n_data:/home/node/.n8n
+      - n8n_custom_nodes:/home/node/.n8n/custom
+      - n8n_workflows:/home/node/.n8n/workflows
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_started
+    networks:
+      - n8n_network
+    deploy:
+      resources:
+        limits:
+          memory: 2G
+        reservations:
+          memory: 1G
+
+  n8n-worker:
+    image: n8nio/n8n:1.122.3
+    container_name: n8n_worker
+    restart: always
+    env_file: .env
+    # Ya no es main y no va  a aceptar llamadas de workflows
+    # limit 20
+    command: ["worker", "--concurrency=1"]
+    environment:
+      - DB_TYPE=postgresdb
+      - DB_POSTGRESDB_HOST=n8n_postgres
+      - DB_POSTGRESDB_PORT=5432
+      - DB_POSTGRESDB_DATABASE=${POSTGRES_DB}
+      - DB_POSTGRESDB_USER=${POSTGRES_USER}
+      - DB_POSTGRESDB_PASSWORD=${POSTGRES_PASSWORD}
+      - DB_POSTGRESDB_SCHEMA=public
+      - N8N_EDITOR_BASE_URL=https://${SUBDOMAIN}.${DOMAIN_NAME}/
+      - N8N_HOST=${SUBDOMAIN}.${DOMAIN_NAME}
+      # Trust proxy ranges (Express syntax: comma-separated, supports CIDR and keywords)
+      - N8N_EXPRESS_TRUST_PROXY=loopback,uniquelocal,172.17.0.0/16
+      - N8N_PORT=5678
+      - N8N_PROTOCOL=https
+      - N8N_SECURE_COOKIE=true
+      - N8N_ENCRYPTION_KEY=${N8N_ENCRYPTION_KEY}
+      - N8N_LOG_LEVEL=info
+      # Genera las maquinas o pods para correr los workflows
+      - N8N_RUNNERS_ENABLED=true
+      # Cada vez que se ejecute de manera manual un workflow se delegara al worker
+      - OFFLOAD_MANUAL_EXECUTIONS_TO_WORKERS=true
+      - NODE_ENV=production
+      - WEBHOOK_URL=https://${SUBDOMAIN}.${DOMAIN_NAME}/
+      - GENERIC_TIMEZONE=${TZ}
+      - TZ=${TZ}
+      - EXECUTIONS_MODE=queue
+      - QUEUE_BULL_REDIS_HOST=n8n_redis
+      - QUEUE_BULL_REDIS_PORT=6379
+      - N8N_WORKER_MODE=true
+      # N8N_BASIC_AUTH_ACTIVE: true
+      # N8N_BASIC_AUTH_USER: ${N8N_BASIC_AUTH_USER}
+      # N8N_BASIC_AUTH_PASSWORD: ${N8N_BASIC_AUTH_PASSWORD}
+    volumes:
+      - n8n_data:/home/node/.n8n
+      - n8n_custom_nodes:/home/node/.n8n/custom
+      - n8n_workflows:/home/node/.n8n/workflows
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_started
+    networks:
+      - n8n_network
+    deploy:
+      resources:
+        limits:
+          memory: 2G
+        reservations:
+          memory: 1G
+volumes:
+  n8n_postgres_data:
+    external: true
+  n8n_redis_data:
+    external: true
+  n8n_data:
+    external: true
+  n8n_custom_nodes:
+    external: true
+  n8n_workflows:
+    external: true
+
+networks:
+  n8n_network:
+  global_db_management_network:
+    external: true
+
+    
+  # postgres-vector:
+  #   image: pgvector/pgvector:pg16
+  #   container_name: n8n_postgres_vector
+  #   restart: unless-stopped
+  #   environment:
+  #     POSTGRES_DB: ${POSTGRES_DB}
+  #     POSTGRES_USER: ${POSTGRES_USER}
+  #     POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+  #     TZ: ${TZ}
+  #     PGTZ: ${TZ}
+  #   ports:
+  #     - "15009:5432"
+  #   volumes:
+  #     - postgres_data:/var/lib/postgresql/data
+  #     - ./init-scripts:/docker-entrypoint-initdb.d
+  #   networks:
+  #     - n8n_network
+  #   healthcheck:
+  #     test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+  #     interval: 30s
+  #     timeout: 10s
+  #     retries: 3
+
+  # adminer:
+  #   image: adminer:latest
+  #   container_name: n8n_adminer
+  #   restart: unless-stopped
+  #   ports:
+  #     - "15012:8080"
+  #   environment:
+  #     ADMINER_DEFAULT_SERVER: postgres
+  #     TZ: ${TZ}
+  #   depends_on:
+  #     - postgres
+  #   networks:
+  #     - n8n_network
+
+  # qdrant:
+  #   image: qdrant/qdrant:v1.15.3
+  #   container_name: qdrant
+  #   ports:
+  #     - "6333:6333"   # REST API
+  #     - "6334:6334"   # gRPC API (opcional)
+  #   volumes:
+  #     - ./qdrant_data:/qdrant/storage
+  #   restart: unless-stopped
+
+  # website:
+  #   image: nginx:latest
+  #   container_name: website
+  #   ports:
+  #     - "8090:80"
+  #   volumes:
+  #     - ./website/index.html:/usr/share/nginx/html/index.html:ro
+  #   networks:
+  #     - appnet
+  #   restart: unless-stopped
+

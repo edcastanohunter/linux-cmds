@@ -1,0 +1,52 @@
+name: global_postgres
+services:
+  postgres:
+    image: postgres:18-alpine
+    container_name: global_postgres
+    restart: always
+    ports:
+      - "127.0.0.1:5432:5432"
+    volumes:
+      - global_postgres_data:/var/lib/postgresql/data
+    env_file: .env
+    environment:
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_DB=${POSTGRES_DB}
+      - TZ=${TZ}
+    networks:
+      - global_db_management_network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+  
+  bytebase:
+    image: bytebase/bytebase:${SOFTWARE_VERSION_TAG}
+    init: true
+    container_name: bytebase
+    restart: always
+    ports:
+      - "127.0.0.1:8458:5678"
+    volumes:
+      - ~/.bytebase/data:/var/opt/bytebase
+    command:
+      [
+        "--data",
+        "/var/opt/bytebase",
+        "--external-url",
+        "https://${DOMAIN}",
+        "--port",
+        "5678",
+      ]
+    networks:
+      - global_db_management_network
+
+volumes:
+  global_postgres_data:
+    name: global_postgres_data
+
+networks:
+  global_db_management_network:
+    name: global_db_management_network

@@ -1,0 +1,38 @@
+name: global_mariadb
+services:
+  mariadb:
+    image: lscr.io/linuxserver/mariadb:latest
+    container_name: global_mariadb
+    env_file: .env
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=${TZ}
+      - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD}
+      - MYSQL_DATABASE=${MYSQL_DATABASE}
+      - MYSQL_USER=${MYSQL_USER}
+      - MYSQL_PASSWORD=${MYSQL_PASSWORD}
+    volumes:
+      - global_mariadb_data:/config
+    ports:
+      - 127.0.0.1:3306:3306
+    restart: unless-stopped
+    networks:
+      - global_db_management_network
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "mysqladmin ping -h 127.0.0.1 -P 3306 -u root -p${MYSQL_ROOT_PASSWORD}",
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  global_mariadb_data:
+    name: global_mariadb_data
+
+networks:
+  global_db_management_network:
+    external: true

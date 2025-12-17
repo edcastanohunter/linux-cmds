@@ -1,0 +1,32 @@
+server {
+    if ($host = localhost) {
+        return 301 https://$host$request_uri;
+    } # managed by Certbot
+
+
+    if ($host = alcast.dev) {
+        return 301 https://$host$request_uri;
+    } # managed by Certbot
+
+
+    listen 80 default_server;
+    listen [::]:80 default_server;
+    server_name alcast.dev www.alcast.dev;
+    return 301 https://$host$request_uri;
+
+}
+
+server {
+    listen 443 ssl;
+    listen [::]:443 ssl;
+    server_name alcast.dev www.alcast.dev localhost;
+
+    root /var/www/alcast.dev;
+    index index.html;
+    ssl_certificate /etc/letsencrypt/live/alcast.dev-0001/fullchain.pem; # managed by Certbot
+    ssl_certificate_key /etc/letsencrypt/live/alcast.dev-0001/privkey.pem; # managed by Certbot
+
+    location / {
+        try_files $uri $uri/ =404;
+    }
+}

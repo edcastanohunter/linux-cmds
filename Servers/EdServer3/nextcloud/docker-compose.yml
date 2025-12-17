@@ -1,0 +1,48 @@
+name: nextcloud
+services:
+  app:
+    image: nextcloud
+    container_name: nextcloud
+    restart: always
+    ports:
+      - 127.0.0.1:12000:80
+    # I have global instances for this
+    #depends_on:
+    #  - redis
+    #  - db
+    volumes:
+      - nextcloud_data:/var/www/html
+    networks:
+      - global_db_management_network
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - MYSQL_PASSWORD=${DB_PW}
+      - MYSQL_DATABASE=nextcloud
+      - MYSQL_USER=${DB_USER}
+      - MYSQL_HOST=global_mariadb
+      - TZ=${TZ}
+      - NEXTCLOUD_TRUSTED_DOMAINS=${TRUSTED_DOMAINS}
+      - NEXTCLOUD_DEFAULT_PHONE_REGION=CO
+      - REDIS_HOST=global_redis
+volumes:
+  nextcloud_data:
+    name: nextcloud_data
+
+networks:
+  global_db_management_network:
+    external: true
+
+# oc_oc_admin
+# Grant privileges to the Nextcloud admin user
+# GRANT ALL PRIVILEGES ON nextcloud.* TO 'oc_oc_admin5'@'%' IDENTIFIED BY 'your_db_password';
+# GRANT ALL PRIVILEGES ON nextcloud.* TO 'oc_oc_admin6'@'%' IDENTIFIED BY '{CP-~.@A<txe0wD>G824m}y&@lK1]5';
+# FLUSH PRIVILEGES;
+# 'dbname' => 'nextcloud',
+# 'dbhost' => 'global_mariadb',
+# 'dbtableprefix' => 'oc_',
+# 'mysql.utf8mb4' => true,
+# 'dbuser' => 'oc_oc_admin5',
+# 'dbpassword' => 'kFdp@++z.zQULQi6w1a<l&l*ujBh_4',
+
+# 

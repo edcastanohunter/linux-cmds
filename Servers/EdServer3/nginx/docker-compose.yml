@@ -1,0 +1,60 @@
+services:
+  nginx:
+    image: nginx:1.29-alpine
+    container_name: nginx_proxy
+    # The Issue: You are running Docker on Windows (Docker Desktop).
+    # In this environment, network_mode: "host" does not work the way it does on Linux.
+    # On Linux: The container shares the host's network stack directly.
+    # localhost on the host reaches the container.
+    # network_mode: "host"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf
+      - ./data/nginx/modules-enabled:/etc/nginx/modules-enabled
+      - ./data/nginx/sites-enabled:/etc/nginx/sites-enabled
+      - ./data/nginx/websocket.conf:/etc/nginx/conf.d/websocket.conf
+      - ./data/certbot/conf:/etc/letsencrypt
+      - ./data/certbot/www:/var/www/certbot
+      - ./data/alcast.dev:/var/www/alcast.dev
+    ports: # Expose ports 80 and 443 if not running in host mode
+      - "80:80"
+      - "443:443"
+    depends_on:
+      - certbot
+
+  certbot:
+    image: certbot/dns-cloudflare:latest # Certbot with Cloudflare DNS plugin
+    container_name: certbot
+    restart: unless-stopped
+    # network_mode: "host"
+    env_file:
+      - ./.env
+    volumes:
+      - ./data/certbot/conf:/etc/letsencrypt
+      - ./data/certbot/www:/var/www/certbot
+      - ./nscacert.pem:/etc/ssl/certs/nscacert.pem:ro
+      # - ./cloudflare.ini:/etc/letsencrypt/cloudflare.ini # Cloudflare credentials
+    environment:
+      - EMAIL=${CERTBOT_EMAIL}
+      - DOMAINS=${CERTBOT_DOMAINS}
+      - STAGING=${CERTBOT_STAGING:-false}
+      - REQUESTS_CA_BUNDLE=/etc/ssl/certs/ca-certificates.crt
+    entrypoint: ["/bin/sh", "-c"]
+    command:
+      - >-
+        cat /etc/ssl/certs/nscacert.pem >> /etc/ssl/certs/ca-certificates.crt &&
+        echo "dns_cloudflare_api_token = ${CLOUDFLARE_API_TOKEN}" > /etc/cloudflare.ini &&
+        chmod 600 /etc/cloudflare.ini &&
+        if [ ! -f /etc/letsencrypt/live/${PRIMARY_DOMAIN}/fullchain.pem ]; then
+          echo 'Initial certificate request...' &&
+          certbot certonly --dns-cloudflare \
+            --dns-cloudflare-credentials /etc/cloudflare.ini \
+            --dns-cloudflare-propagation-seconds 30 \
+            --agree-tos --no-eff-email --email ${CERTBOT_EMAIL} \
+            -d ${CERTBOT_DOMAINS} ${CERTBOT_STAGING:+--staging} &&
+          echo 'Initial certificate obtained!';
+        else
+          echo 'Certificate exists, skipping initial request.';
+        fi &&
+        echo 'Setting up renewal cron...' &&
+        echo '0 12 * * * /usr/bin/certbot renew --quiet --deploy-hook "echo Renewed!"' > /etc/crontabs/root &&
+        crond -f

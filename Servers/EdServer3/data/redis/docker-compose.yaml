@@ -1,0 +1,29 @@
+name: global-redis
+services:
+  redis:
+    image: redis:8.4-alpine
+    container_name: global_redis
+    restart: always
+    ports:
+      - "127.0.0.1:6379:6379"
+      - "127.0.0.1:15011:8001"
+    volumes:
+      - redis_data:/data
+    env_file: .env
+    environment:
+      TZ: ${TZ}
+    networks:
+      - global_db_management_network
+    healthcheck:
+      # https://redis.io/docs/latest/commands/ping/
+      test: ["CMD-SHELL", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 2s
+      retries: 5
+
+volumes:
+  redis_data:
+
+networks:
+  global_db_management_network:
+    external: true
