@@ -16,12 +16,13 @@ services:
       - TZ=${TZ}
     networks:
       - global_db_management_network
+      - n8n_network
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
       interval: 10s
       timeout: 5s
       retries: 5
-  
+
   bytebase:
     image: bytebase/bytebase:${SOFTWARE_VERSION_TAG}
     init: true
@@ -46,6 +47,8 @@ services:
 volumes:
   global_postgres_data:
     name: global_postgres_data
+  n8n_network:
+    external: true
 
 networks:
   global_db_management_network:
