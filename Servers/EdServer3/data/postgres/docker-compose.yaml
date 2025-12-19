@@ -47,9 +47,9 @@ services:
 volumes:
   global_postgres_data:
     name: global_postgres_data
-  n8n_network:
-    external: true
-
+  
 networks:
   global_db_management_network:
     name: global_db_management_network
+  n8n_network:
+    external: true
