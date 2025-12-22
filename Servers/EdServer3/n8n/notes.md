@@ -5,6 +5,10 @@ docker network create n8n_network
 docker network connect n8n_network global_postgres
 docker network connect n8n_network global_redis
 
+
+docker network connect fs_network global_mariadb
+
+
 #To see which containers are connected to the network
 docker network inspect n8n_network
 

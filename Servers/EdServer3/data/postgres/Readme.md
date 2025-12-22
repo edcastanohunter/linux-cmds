@@ -3,9 +3,11 @@
 ## Create a db and a password
 
 ```sql
-CREATE DATABASE n8n;
-CREATE USER n8n_dba WITH ENCRYPTED PASSWORD 'my_password';
-GRANT ALL PRIVILEGES ON DATABASE n8n TO n8n_dba;
+CREATE DATABASE fs_ed;
+CREATE USER fs_dba WITH ENCRYPTED PASSWORD 'zIU1omAaGl7JUIaZEPXxI5uRHBGc2BoY';
+GRANT ALL PRIVILEGES ON DATABASE fs_ed TO fs_dba;
+
+HFjmvIUp6fcFc0KyGMi0BBd4ekUN6FT8
 ```
 
 ## List databases and users

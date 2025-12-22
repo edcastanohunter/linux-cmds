@@ -1,0 +1,40 @@
+services:
+  facturascripts:
+    image: facturascripts/facturascripts:latest
+    container_name: facturascripts
+    restart: unless-stopped
+    ports:
+      - "${FS_PORT}:80" # Acceso web a FacturaScripts
+    environment:
+      - FS_DB_HOST=${FS_DB_HOST}
+      - FS_DB_PORT=${FS_DB_PORT}
+      - FS_DB_NAME=${FS_DB_NAME}
+      - FS_DB_USER=${FS_DB_USER}
+      - FS_DB_PASS=${FS_DB_PASS}
+    volumes:
+      - facturascripts_data:/var/www/html
+    networks:
+      - fs_network
+networks:
+  fs_network:
+  # mysql:
+  #   image: mysql:8.0
+  #   container_name: facturascripts_mysql
+  #   restart: unless-stopped
+  #   environment:
+  #     - MYSQL_ROOT_PASSWORD=rootpass
+  #     - MYSQL_DATABASE=facturascripts
+  #     - MYSQL_USER=fs_user
+  #     - MYSQL_PASSWORD=fs_pass
+  #   command: --default-authentication-plugin=mysql_native_password
+  #   volumes:
+  #     - mysql_data:/var/lib/mysql
+
+  # adminer:
+  #   image: adminer:latest
+  #   container_name: facturascripts_adminer
+  #   restart: unless-stopped
+  #   ports:
+  #     - "8081:8080" # Acceso web a Adminer
+  #   depends_on:
+  #     - mysql
