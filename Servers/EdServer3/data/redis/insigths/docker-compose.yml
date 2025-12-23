@@ -1,0 +1,58 @@
+version: '3.9'
+services:
+  redis:
+    image: redis:latest
+    container_name: redis
+    restart: always
+    ports:
+      - ${APP_PORT}:6379
+    networks:
+      - default
+    volumes:
+      - /root/redis/data:/db
+    command:
+      - --requirepass ${APP_PASS}
+
+  insight:
+    image: redislabs/redisinsight:latest
+    container_name: insight
+    restart: always
+    depends_on:
+      - redis
+      - graph
+      - search
+      - timeseries
+    ports:
+      - ${INSIGHT_PORT}:8001
+    networks:
+      - default
+    volumes:
+      - /data/redisinsight:/data
+
+  graph:
+    image: redislabs/redisgraph
+    ports:
+      - ${GRAPH_PORT}:6379
+    restart: always
+
+  search:
+    image: redislabs/redisearch:latest
+    ports:
+      - ${SEARCH_PORT}:6379
+    restart: always
+
+  timeseries:
+    image: redislabs/redistimeseries
+    ports:
+      - ${TIMESERIES_PORT}:6379
+    restart: always
+
+networks:
+  default:
+    driver: bridge
+
+volumes:
+  db:
+    driver: local
+  data:
+    driver: local

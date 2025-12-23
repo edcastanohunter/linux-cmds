@@ -200,6 +200,8 @@ Here are some of the most useful MariaDB and related terminal commands, organize
     ```sql
     CREATE USER '[username]'@'[host]' IDENTIFIED BY '[password]';
 
+    CREATE USER 'prestashop_dba'@'localhost' IDENTIFIED BY 'Y7VTdr6zRdokPZBl6hSjqwoVtWwRF7mh';
+
     CREATE USER 'fs_dba'@'localhost' IDENTIFIED BY '9kIPknyjT2DdPcmo3AXcpBGhkgAqBPQz';
 
     - **Update a User's Password**
@@ -217,6 +219,8 @@ Here are some of the most useful MariaDB and related terminal commands, organize
     GRANT ALL PRIVILEGES ON [database_name].* TO '[username]'@'[host]';
 
     GRANT ALL PRIVILEGES ON fs_ed.* TO 'fs_dba'@'localhost';
+
+    GRANT ALL PRIVILEGES ON prestashop.* TO 'prestashop_dba'@'%';
     ```
 
 <!--
@@ -240,3 +244,27 @@ Here are some of the most useful MariaDB and related terminal commands, organize
         ```bash
         openssl rand -base64 20
         ```
+
+
+
+```sql
+
+DROP DATABASE prestashop;
+CREATE DATABASE prestashop;
+CREATE USER 'prestashop_dba'@'%' IDENTIFIED BY 'Y7VTdr6zRdokPZBl6hSjqwoVtWwRF7mh';
+GRANT ALL PRIVILEGES ON prestashop.* TO 'prestashop_dba'@'%';
+FLUSH PRIVILEGES;
+
+
+
+
+
+/*
+
+#### **Host Wildcards**
+
+- **`'user'@'localhost'`**: Restricts access to the local machine only.
+- **`'user'@'%'`**: Allows access from any remote host (wildcard).
+
+*/
+```

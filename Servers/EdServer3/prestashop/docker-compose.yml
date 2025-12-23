@@ -1,0 +1,35 @@
+services:
+  prestashop:
+    image: prestashop/prestashop:latest
+    environment:
+      - PS_DEV_MODE=${PS_DEV_MODE:-0}
+      - PS_DEMO_MODE=${PS_DEMO_MODE:-1}
+      - PS_HOST_MODE=${PS_HOST_MODE:-1}
+      - DB_SERVER=${DB_SERVER:-mysql}
+      - DB_USER=${DB_USER}
+      - DB_PASSWD=${DB_PASSWD}
+      - DB_NAME=${DB_NAME}
+      - DB_PREFIX=${DB_PREFIX:-ps_}
+      - PS_INSTALL_AUTO=${PS_INSTALL_AUTO:-1}
+      - PS_DOMAIN=${PS_DOMAIN}
+      - PS_LANGUAGE=${PS_LANGUAGE:-es}
+      - PS_COUNTRY=${PS_COUNTRY:-es}
+      - PS_FOLDER_INSTALL=${PS_FOLDER_INSTALL:-install-dev}
+      - PS_FOLDER_ADMIN=${PS_FOLDER_ADMIN:-admin-dev}
+      - PS_ENABLE_SSL=${PS_ENABLE_SSL:-1}
+      - ADMIN_MAIL=${ADMIN_MAIL}
+      - ADMIN_PASSWD=${ADMIN_PASSWD}
+    restart: always
+    ports:
+      - "127.0.0.1:${PS_PORT}:80"
+    volumes:
+      - prestashop_data:/var/www/html
+    networks:
+      - prestashop_network
+
+volumes:
+  prestashop_data:
+
+networks:
+  prestashop_network:
+    external: true

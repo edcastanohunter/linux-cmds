@@ -4,7 +4,7 @@ services:
     container_name: facturascripts
     restart: unless-stopped
     ports:
-      - "${FS_PORT}:80" # Acceso web a FacturaScripts
+      - "127.0.0.1:${FS_PORT}:80" # Acceso web a FacturaScripts
     environment:
       - FS_DB_HOST=${FS_DB_HOST}
       - FS_DB_PORT=${FS_DB_PORT}
